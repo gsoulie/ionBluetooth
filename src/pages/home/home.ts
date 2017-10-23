@@ -14,6 +14,7 @@ export class HomePage {
 
   constructor(public navCtrl: NavController,
               private ble: BLE) {
+                
   }
 
   onScan(){
