@@ -2,18 +2,11 @@
   <ion-navbar color="danger">
     <ion-title>{{device.name}}</ion-title>
     <ion-buttons end>
-        <button ion-button (click)="onConnect()">
-          <!--<ion-icon name="md-bluetooth"></ion-icon>-->
-          READ
-        </button>
-        <button icon-only ion-button (click)="refresh()">
-          <ion-icon name="md-refresh"></ion-icon>
-        </button>
-      </ion-buttons>
+      <button icon-only ion-button (click)="refresh()">
+        <ion-icon name="md-refresh"></ion-icon>
+      </button>
+    </ion-buttons>
   </ion-navbar>
-  <ion-toolbar color="danger">
-    <ion-searchbar placeholder="Service" (ionInput)="getService($event)"></ion-searchbar>
-  </ion-toolbar>
 </ion-header>
 <ion-content padding>
   <ion-card>
@@ -31,16 +24,39 @@
       </ion-row>
     </ion-grid>
   </ion-card>
-  
+  <!--
   <ion-list>
-   <!-- <ion-item-sliding *ngFor="let characteristic of characteristics" #slidingItem>-->
     <button ion-item (click)="connectToCharacteristic(device.id,characteristic.service, characteristic.characteristic)" *ngFor="let characteristic of characteristics">
       <font class="title">Service : </font><font class="value">0x{{characteristic.service}}</font><br>
       <font class="title">UUID : </font><font class="value">0x{{characteristic.characteristic}}</font><br>
       <font class="title">Properties : </font><font class="value">{{characteristic.properties}}</font><br>
       <font class="title">Notifying : </font><font class="value">{{characteristic.isNotifying}}</font>
     </button>
-   <!-- </ion-item-sliding>-->
+  </ion-list>
+-->
+  <ion-item-group *ngFor="let item of temp">
+    <ion-item-divider (click)="onExpandCollapseService(item)" no-detail>
+        <ion-icon item-right name="md-arrow-dropright" *ngIf="item.expand == false"></ion-icon>
+        <ion-icon item-right name="md-arrow-dropdown" *ngIf="item.expand == true"></ion-icon>
+        <font class="value"><b>{{item.name}}</b></font><br>
+        <font class="title">UUID : </font><font class="value">0x{{item.service}}</font><br>
+    </ion-item-divider>
+    <ion-list no-detail *ngIf="item.expand == true">
+      <button ion-item no-lines *ngFor="let characteristic of item.characteristics" 
+            (click)="connectToCharacteristic(device.id,item.service, characteristic)"
+            class="paddingButton">
+        <font class="value"><b>{{characteristic.name}}</b></font><br>
+        <font class="title">UUID : </font><font class="value">0x{{characteristic.characteristic}}</font><br>
+        <font class="title">Properties : </font><font class="value">{{characteristic.properties}}</font>
+      </button>
     </ion-list>
+    <!--
+    <div *ngIf="item.expand == true">
+        <button ion-item no-lines *ngFor="let characteristic of item.characteristics" (click)="connectToCharacteristic(device.id,item.service, characteristic.characteristic)">
+          <font class="title">UUID : </font><font class="value">0x{{characteristic.characteristic}}</font><br>
+          <font class="title">Properties : </font><font class="value">{{characteristic.properties}}</font>
+        </button>
+    </div>  -->
+  </ion-item-group>
    <!-- <ion-spinner *ngIf="spinner===true" name="bubbles"></ion-spinner>-->
 </ion-content>

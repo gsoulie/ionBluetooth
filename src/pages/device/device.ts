@@ -1,3 +1,4 @@
+import { Service } from './../../models/service';
 import { Component } from '@angular/core';
 import { NavController, NavParams } from 'ionic-angular';
 import { BLE } from '@ionic-native/BLE';
@@ -11,16 +12,15 @@ export class DevicePage {
   inService: string = "";
   inCharacteristic: string = "";
   characteristics: any[] = [];
-  status: string = "";
   characteristicList: any[] = [];
+  temp = [];
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, public ble: BLE) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, public ble: BLE, public cl_service: Service) {
     this.device = this.navParams.get('device');
     this.onConnect();
   }
 
   onConnect() {
-    this.status = "Connecting...";
     this.spinner = true;
     this.characteristics = [];
     let deviceID = this.device.id;
@@ -30,16 +30,43 @@ export class DevicePage {
       this.characteristics = peripheralData.characteristics;
       this.characteristicList = this.characteristics;
       this.spinner = false;
-      this.status = "Characteristics ok";
-      alert("lecture terminée");
+      this.parseCharacteristics()
+      alert("lecture terminée : ");
       this.refresh();
     },
     
     () => {
       this.spinner = false;
-      this.status = "Undefined"
       alert("etat indéfini");
     });
+  }
+
+  parseCharacteristics(){
+    
+    var service = "";
+    var charac = [];
+    for(let i = 0; i < this.characteristics.length; i++){
+      if(i == 0){
+        service = this.characteristics[i].service;
+      } else {
+        if(service !== this.characteristics[i].service){
+          this.temp.push({service: service, name: this.cl_service.getServiceName(service), expand: false, characteristics: charac});
+          service = this.characteristics[i].service;
+          charac = [];
+        }
+      }
+      charac.push({characteristic: this.characteristics[i].characteristic, 
+                  name:this.cl_service.getCharacteristicName(this.characteristics[i].characteristic), 
+                  properties: this.characteristics[i].properties,
+                  type: this.cl_service.getCharacteristicType(this.characteristics[i].characteristic),
+                  unit: this.cl_service.getCharacteristicUnit(this.characteristics[i].characteristic)});
+    }
+
+    this.temp.push({service: service, name: service, expand: false, characteristics: charac});
+  }
+
+  onExpandCollapseService(item){
+    item.expand = !item.expand;
   }
 
   refresh(){
@@ -72,11 +99,21 @@ export class DevicePage {
     /*this.ble.read(deviceID,TEMPERATURE_SERVICE,TEMPERATURE_CONFIG).then(data => {
       alert("res : " + JSON.stringify(data));
     });*/
-    this.ble.read(deviceID,service,characteristic).then(
+    this.ble.read(deviceID,service,characteristic.characteristic).then(
       function(buffer){
         var databuffer = new Uint8Array(buffer);
-        alert("deviceID : " + deviceID + '\r\n[' + service + ' - ' + characteristic + ']\r\n' + "buffer " + String.fromCharCode.apply(null,databuffer));
-        alert("deviceID : " + deviceID + '\r\n[' + service + ' - ' + characteristic + ']\r\n' + "buffer " + databuffer[0]);
+        switch(characteristic.type){
+          case 'string':
+            alert("value = " + String.fromCharCode.apply(null,databuffer)+characteristic.unit);
+            break;
+          case 'number':
+            alert("value = " + databuffer[0]+characteristic.unit);
+            break;
+          default:
+            alert("value = " + JSON.stringify(databuffer)+characteristic.unit);
+            break;
+        }
+        
       }
     );
   }
@@ -89,26 +126,6 @@ export class DevicePage {
     let handle_Read = '21';
   }
 
-  getService(ev:any){
-    this.characteristics = this.characteristicList;
-
-    // set searchText to the value of the searchbar
-    var searchText = ev.target.value;
-    
-    // Avoid research if searchtext is empty
-    if (!searchText || searchText.trim() === '') {
-      this.characteristics = this.characteristicList;
-      return;
-    }
-
-    // Filtering on the attribute 'nom'
-    this.characteristics = this.characteristics.filter((v) => {
-      if (v.service.toLowerCase().indexOf(searchText.toLowerCase()) > -1) {
-        return true;
-      }
-      return false;
-    })
-  }
   ionViewDidLoad() {
     console.log('ionViewDidLoad DevicePage');
   }
