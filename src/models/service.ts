@@ -55,7 +55,8 @@ export class Service{
     {uuid:'F000AA64-0451-4000-B000-000000000000',name:'IO Service'},
     {uuid:'F000AA70-0451-4000-B000-000000000000',name:'Luxometer Service'},
     {uuid:'F000AA80-0451-4000-B000-000000000000',name:'Movement Service'},
-    {uuid:'F000FFC0-0451-4000-B000-000000000000',name:'OAD Service'}];
+    {uuid:'F000FFC0-0451-4000-B000-000000000000',name:'OAD Service'},
+    {uuid:'',name:''}];
 
     characteristics: any[] = [
         {uuid:'2A00',name:'Device Name', type: 'string', unit:''},
@@ -71,7 +72,31 @@ export class Service{
         {uuid:'2A2A',name:'IEEE 11073-20601 Regulatory Certification Data List', type: 'complex', unit:''},
         {uuid:'2A50',name:'PnP ID', type: 'complex', unit:''},
         {uuid:'2A19',name:'Battery Level', type: 'number', unit:'%'},
-        {uuid:'2904',name:'', type: 'string', unit:''}
+        {uuid:'2904',name:'', type: 'string', unit:''},
+        {uuid:'F000AA01-0451-4000-B000-000000000000',name:'IR Temperature Data', type: 'complex', unit:''},
+        {uuid:'F000AA02-0451-4000-B000-000000000000',name:'IR Temperature Config (write 01 to start)', type: 'complex', unit:''},
+        {uuid:'F000AA03-0451-4000-B000-000000000000',name:'IR Temperature Period (Period = [input*10]ms)', type: 'complex', unit:'ms'},
+        {uuid:'F000AA41-0451-4000-B000-000000000000',name:'Barometer Data', type: 'complex', unit:''},
+        {uuid:'F000AA42-0451-4000-B000-000000000000',name:'Barometer Config', type: 'complex', unit:''},
+        {uuid:'F000AA44-0451-4000-B000-000000000000',name:'Barometer Period', type: 'complex', unit:''},
+        {uuid:'F000AA21-0451-4000-B000-000000000000',name:'Humidity Data', type: 'complex', unit:''},
+        {uuid:'F000AA22-0451-4000-B000-000000000000',name:'Humidity Config', type: 'complex', unit:''},
+        {uuid:'F000AA23-0451-4000-B000-000000000000',name:'Humidity Period', type: 'complex', unit:''},
+        {uuid:'F000AA81-0451-4000-B000-000000000000',name:'Movement Data', type: 'complex', unit:''},
+        {uuid:'F000AA82-0451-4000-B000-000000000000',name:'Movement Config', type: 'complex', unit:''},
+        {uuid:'F000AA83-0451-4000-B000-000000000000',name:'Movement Period', type: 'complex', unit:''},
+        {uuid:'F000AA71-0451-4000-B000-000000000000',name:'Luxometer Data', type: 'complex', unit:''},
+        {uuid:'F000AA72-0451-4000-B000-000000000000',name:'Luxometer Config', type: 'complex', unit:''},
+        {uuid:'F000AA73-0451-4000-B000-000000000000',name:'Luxometer Period', type: 'complex', unit:''},
+        {uuid:'FFE1',name:'Key press state', type: 'complex', unit:''},
+        {uuid:'F000AA65-0451-4000-B000-000000000000',name:'IO Data', type: 'complex', unit:''},
+        {uuid:'F000AA66-0451-4000-B000-000000000000',name:'IO Config (0:local 1:remote 2:test)', type: 'complex', unit:''},
+        {uuid:'F000AC01-0451-4000-B000-000000000000',name:'Register Data', type: 'complex', unit:''},
+        {uuid:'F000AC02-0451-4000-B000-000000000000',name:'Register Address', type: 'complex', unit:''},
+        {uuid:'F000AC03-0451-4000-B000-000000000000',name:'Register Device ID', type: 'complex', unit:''},
+        {uuid:'F000CCC1-0451-4000-B000-000000000000',name:'Connection Parameters (ConnInterval,SlaveLatency,SupervisionTimeout [2 bytes each])', type: 'complex', unit:''},
+        {uuid:'F000CCC2-0451-4000-B000-000000000000',name:'Request Connection Params', type: 'complex', unit:''},
+        {uuid:'F000CCC3-0451-4000-B000-000000000000',name:'Disconnect Request', type: 'complex', unit:''}
         ];
 
     constructor() {
@@ -102,7 +127,7 @@ export class Service{
                 return this.characteristics[i].type;
             }
         }
-        return "string";
+        return "complex";
     }
     getCharacteristicUnit(uuid: string = ""){
         for(let i=0; i<this.characteristics.length; i++){

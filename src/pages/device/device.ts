@@ -9,17 +9,22 @@ import { BLE } from '@ionic-native/BLE';
 export class DevicePage {
   device: any = {};
   spinner: boolean = false;
-  inService: string = "";
-  inCharacteristic: string = "";
   characteristics: any[] = [];
-  characteristicList: any[] = [];
+  //characteristicList: any[] = [];
+  temperatureButtonLabel: string = "START";
+  temperatureSensor;
   temp = [];
+  startTemperature: boolean = false;
+  temperatureValue: string = "";
 
   constructor(public navCtrl: NavController, public navParams: NavParams, public ble: BLE, public cl_service: Service) {
     this.device = this.navParams.get('device');
     this.onConnect();
   }
 
+  /**
+   * Connect to the device and read its characteristics
+   */
   onConnect() {
     this.spinner = true;
     this.characteristics = [];
@@ -28,7 +33,7 @@ export class DevicePage {
     this.ble.connect(deviceID).subscribe(peripheralData => {
       console.log(peripheralData.characteristics);
       this.characteristics = peripheralData.characteristics;
-      this.characteristicList = this.characteristics;
+      //this.characteristicList = this.characteristics;
       this.spinner = false;
       this.parseCharacteristics()
       alert("lecture terminée : ");
@@ -41,6 +46,9 @@ export class DevicePage {
     });
   }
 
+  /**
+   * Order characteristics by services and parse the values to display more informations
+   */
   parseCharacteristics(){
     
     var service = "";
@@ -70,35 +78,17 @@ export class DevicePage {
   }
 
   refresh(){
-    this.characteristics = this.characteristicList;
-  }
-
-  onReadCharacteristic(deviceID){
-    this.ble.read(deviceID,this.inService,this.inCharacteristic).then(
-      function(buffer){
-        var databuffer = new Uint8Array(buffer);
-        alert("buffer " + String.fromCharCode.apply(null,databuffer));
-      }
-    )
-    .catch((err) => {alert("error : " + JSON.stringify(err));});
+    //this.characteristics = this.characteristicList;
   }
   
-  connectToCharacteristic(deviceID,service,characteristic) {
+  /**
+   * Read characteristic info
+   * @param deviceID 
+   * @param service 
+   * @param characteristic 
+   */
+  onReadCharacteristic(deviceID,service,characteristic) {
     
-    var TEMPERATURE_SERVICE = '180f';//'f000aa00-0451-4000-b000-000000000000';//'180A';
-    var TEMPERATURE_CONFIG = '2a19';//'f000aa02-0451-4000-b000-000000000000';//'2a24'
-    var TEMPERATURE_DATA = '';//'f000aa01-0451-4000-b000-000000000000';
-
-    //var service = this.ble.read(deviceID, TEMPERATURE_SERVICE,TEMPERATURE_DATA);
-    /*var configCharacteristic = this.ble.read(deviceID, TEMPERATURE_SERVICE,TEMPERATURE_CONFIG);
-    var dataCharacteristic = this.ble.read(deviceID, TEMPERATURE_SERVICE,TEMPERATURE_DATA);
-    */
-    // Enable Temperature
-    //this.ble.write(deviceID,TEMPERATURE_SERVICE,TEMPERATURE_CONFIG,new Uint8Array[1]);
-
-    /*this.ble.read(deviceID,TEMPERATURE_SERVICE,TEMPERATURE_CONFIG).then(data => {
-      alert("res : " + JSON.stringify(data));
-    });*/
     this.ble.read(deviceID,service,characteristic.characteristic).then(
       function(buffer){
         var databuffer = new Uint8Array(buffer);
@@ -110,7 +100,7 @@ export class DevicePage {
             alert("value = " + databuffer[0]+characteristic.unit);
             break;
           default:
-            alert("value = " + JSON.stringify(databuffer)+characteristic.unit);
+            alert(characteristic.characteristic+"\r\nvalue = " + JSON.stringify(databuffer)+characteristic.unit+"\r\n"+ databuffer[0]+characteristic.unit);
             break;
         }
         
@@ -118,12 +108,41 @@ export class DevicePage {
     );
   }
 
-  onReadTemperature(deviceID){
-    let service_Write = 'AA02';
-    let handle_Write =  '24';
-    let value = '1';
-    let service_Read = 'AA01'
-    let handle_Read = '21';
+  onTemperatureSwitchChange(event){
+    let value = this.temperatureSensor ? 0x01 : 0x00;
+    let buffer = new Uint8Array([value]);
+    alert("value " + value+"\r\n"+buffer);
+    this.onWriteCharacteristic("F000AA00-0451-4000-B000-000000000000","F000AA02-0451-4000-B000-000000000000",value);
+  }
+  
+  onReadTemperature(){
+    this.startTemperature = !this.startTemperature;
+    this.temperatureButtonLabel = this.startTemperature == true ? "STOP" : "START"
+    //var value = new Uint16Array(1);
+    var value = new Uint8Array(1);
+    
+    if(this.startTemperature == true){
+      value[0] = 0x01;
+      this.onWriteCharacteristic("F000AA00-0451-4000-B000-000000000000","F000AA02-0451-4000-B000-000000000000",value);
+    } else {
+      value[0] = 0x00;
+      this.onWriteCharacteristic("F000AA00-0451-4000-B000-000000000000","F000AA02-0451-4000-B000-000000000000",value);
+    }
+  }
+
+
+  /**
+   * Write on characteristic
+   * @param service 
+   * @param characteristic 
+   * @param value 
+   */
+  onWriteCharacteristic(service, characteristic, value){
+    this.ble.write(this.device.id,service,characteristic,value).then(
+      function(res){
+         alert("Ecriture : " + JSON.stringify(res));
+      }
+    );
   }
 
   ionViewDidLoad() {
