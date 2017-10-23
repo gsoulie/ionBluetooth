@@ -1,14 +1,30 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar color="danger">
     <ion-title>
-      Ionic Blank
+      Ionic bluettoth
     </ion-title>
+    <ion-buttons end>
+      <button ion-button (click)="onScan()">
+        <!--<ion-icon name="md-bluetooth"></ion-icon>-->
+        {{ scanButtonTitle }}
+      </button>
+    </ion-buttons>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  The world is your oyster.
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
-  </p>
+  <h3>BLE devices detected :</h3>
+  
+  <button *ngFor="let o of devices" ion-item (click)="connectToDevice(o)">
+      <b>{{o.name || 'Unnamed'}}</b> [ <i>{{o.id}}</i> ]<br>
+      <font class="title">rssi : </font><font class="value">{{o.rssi}}</font>
+  </button>
+
+  <!--<button *ngFor="let o of devices" ion-item (click)="connectToDevice(o)">
+    <h2>{{o.name || 'Unnamed'}}</h2>
+    <p>{{o.id}}</p>
+    <p>rssi : {{o.rssi}}</p>
+  </button>-->
+  <ion-label>{{ error }}</ion-label>
 </ion-content>
+
