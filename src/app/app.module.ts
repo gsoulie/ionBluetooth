@@ -1,3 +1,4 @@
+import { Service } from './../models/service';
 import { DevicePage } from './../pages/device/device';
 import { BrowserModule } from '@angular/platform-browser';
 import { ErrorHandler, NgModule } from '@angular/core';
@@ -28,7 +29,8 @@ import { HomePage } from '../pages/home/home';
     StatusBar,
     SplashScreen,
     BLE,
-    {provide: ErrorHandler, useClass: IonicErrorHandler}
+    {provide: ErrorHandler, useClass: IonicErrorHandler},
+    Service
   ]
 })
 export class AppModule {}
