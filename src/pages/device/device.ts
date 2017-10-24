@@ -1,16 +1,16 @@
 import { Service } from './../../models/service';
-import { Component } from '@angular/core';
+import { Component, OnInit  } from '@angular/core';
 import { NavController, NavParams } from 'ionic-angular';
 import { BLE } from '@ionic-native/BLE';
 @Component({
   selector: 'page-device',
   templateUrl: 'device.html',
 })
-export class DevicePage {
+export class DevicePage implements OnInit {
   device: any = {};
   spinner: boolean = false;
   characteristics: any[] = [];
-  //characteristicList: any[] = [];
+  characteristicList: any[] = [];
   temperatureButtonLabel: string = "START";
   temperatureSensor;
   temp = [];
@@ -20,6 +20,10 @@ export class DevicePage {
   constructor(public navCtrl: NavController, public navParams: NavParams, public ble: BLE, public cl_service: Service) {
     this.device = this.navParams.get('device');
     this.onConnect();
+  }
+
+  ngOnInit(){
+    this.refresh();
   }
 
   /**
@@ -33,7 +37,7 @@ export class DevicePage {
     this.ble.connect(deviceID).subscribe(peripheralData => {
       console.log(peripheralData.characteristics);
       this.characteristics = peripheralData.characteristics;
-      //this.characteristicList = this.characteristics;
+      this.characteristicList = this.characteristics;
       this.spinner = false;
       this.parseCharacteristics()
       alert("lecture terminée : ");
@@ -44,6 +48,10 @@ export class DevicePage {
       this.spinner = false;
       alert("etat indéfini");
     });
+  }
+
+  refresh(){
+    this.characteristics = this.characteristicList;
   }
 
   /**
@@ -67,7 +75,9 @@ export class DevicePage {
                   name:this.cl_service.getCharacteristicName(this.characteristics[i].characteristic), 
                   properties: this.characteristics[i].properties,
                   type: this.cl_service.getCharacteristicType(this.characteristics[i].characteristic),
-                  unit: this.cl_service.getCharacteristicUnit(this.characteristics[i].characteristic)});
+                  unit: this.cl_service.getCharacteristicUnit(this.characteristics[i].characteristic),
+                  service: service,
+                  value:/*this.onReadCharacteristic(this.device.id,service,this.characteristics[i])*/''});
     }
 
     this.temp.push({service: service, name: service, expand: false, characteristics: charac});
@@ -77,15 +87,18 @@ export class DevicePage {
     item.expand = !item.expand;
   }
 
-  refresh(){
-    //this.characteristics = this.characteristicList;
+  
+  onRefreshValue(characteristic,i,y){
+    //var res = this.onReadCharacteristic(this.device.id,characteristic.service,characteristic);
+    alert(this.onReadCharacteristic(this.device.id,characteristic.service,characteristic));
+    this.temp[i].characteristics[y].value = this.onReadCharacteristic(this.device.id,characteristic.service,characteristic);
   }
   
   /**
    * Read characteristic info
    * @param deviceID 
    * @param service 
-   * @param characteristic 
+   * @param characteristic (objet characteristic)
    */
   onReadCharacteristic(deviceID,service,characteristic) {
     
@@ -95,13 +108,15 @@ export class DevicePage {
         switch(characteristic.type){
           case 'string':
             alert("value = " + String.fromCharCode.apply(null,databuffer)+characteristic.unit);
-            break;
+            return String.fromCharCode.apply(null,databuffer)+characteristic.unit;
           case 'number':
             alert("value = " + databuffer[0]+characteristic.unit);
-            break;
+            return databuffer[0]+characteristic.unit;
+            //break;
           default:
-            alert(characteristic.characteristic+"\r\nvalue = " + JSON.stringify(databuffer)+characteristic.unit+"\r\n"+ databuffer[0]+characteristic.unit);
-            break;
+            alert(characteristic.characteristic+"\r\nvalue = " + JSON.stringify(databuffer)+characteristic.unit+"\r\n"+ databuffer[0]+characteristic.unit+"\r\n"+ databuffer);
+            return JSON.stringify(databuffer)+characteristic.unit;
+            //break;
         }
         
       }
@@ -109,27 +124,10 @@ export class DevicePage {
   }
 
   onTemperatureSwitchChange(event){
-    let value = this.temperatureSensor ? 0x01 : 0x00;
-    let buffer = new Uint8Array([value]);
-    alert("value " + value+"\r\n"+buffer);
+    var value = new Uint8Array(1);
+    value[0] = this.temperatureSensor ? 0x01 : 0x00;
     this.onWriteCharacteristic("F000AA00-0451-4000-B000-000000000000","F000AA02-0451-4000-B000-000000000000",value);
   }
-  
-  onReadTemperature(){
-    this.startTemperature = !this.startTemperature;
-    this.temperatureButtonLabel = this.startTemperature == true ? "STOP" : "START"
-    //var value = new Uint16Array(1);
-    var value = new Uint8Array(1);
-    
-    if(this.startTemperature == true){
-      value[0] = 0x01;
-      this.onWriteCharacteristic("F000AA00-0451-4000-B000-000000000000","F000AA02-0451-4000-B000-000000000000",value);
-    } else {
-      value[0] = 0x00;
-      this.onWriteCharacteristic("F000AA00-0451-4000-B000-000000000000","F000AA02-0451-4000-B000-000000000000",value);
-    }
-  }
-
 
   /**
    * Write on characteristic
