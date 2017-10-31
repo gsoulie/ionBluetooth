@@ -14,12 +14,14 @@
 
 <ion-content padding>
   <h3>Bluetooth devices</h3>
-  
-  <button *ngFor="let o of devices" ion-item (click)="connectToDevice(o)" detail-push>
-      <b>{{o.name || 'Unnamed'}}</b><br>
+  <!--<button *ngFor="let o of devices" ion-item (click)="connectToDevice(o)" detail-push>-->
+  <ion-item *ngFor="let o of devices">
+    <b>{{o.name || 'Unnamed'}}</b>
+    <button ion-button item-right color="black" (click)="connectToDevice(o)">CONNECT</button>
+    <br>
       <font class="title">{{o.id}}</font><br>
       <font class="title">rssi : </font><font class="value">{{o.rssi}} dBm</font>
-  </button>
+  </ion-item>
 
   <!--<button *ngFor="let o of devices" ion-item (click)="connectToDevice(o)">
     <h2>{{o.name || 'Unnamed'}}</h2>
