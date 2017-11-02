@@ -24,7 +24,7 @@ export class HomePage {
     this.devices = [];
 
     if(this.isScanning){
-      this.methodeScan1();
+      this.methodeScan3();
     } else {
       this.ble.stopScan();
       this.error = "";
@@ -66,12 +66,21 @@ export class HomePage {
     this.error = "scanning...";
       this.ble.startScan([]).subscribe(device => {
         if(device.name == 'CC2650 SensorTag'){
+          this.devices.push(device);
           this.ble.stopScan();
-          this.error = '';
+          /*this.error = '';
           this.scanButtonTitle = "START SCANNING";
-          this.isScanning = false;
+          this.isScanning = false;*/
         }
       })
+
+      setTimeout(() => {
+        this.ble.stopScan().then(() => {
+          this.error = "";
+          this.scanButtonTitle = "START SCANNING";
+          this.isScanning = false;
+        });
+      }, 10000);
   }
 
   connectToDevice(device){

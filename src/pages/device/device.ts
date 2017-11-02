@@ -2,6 +2,8 @@ import { Service } from './../../models/service';
 import { Component, OnInit  } from '@angular/core';
 import { NavController, NavParams } from 'ionic-angular';
 import { BLE } from '@ionic-native/BLE';
+import {Buffer} from 'buffer';
+
 @Component({
   selector: 'page-device',
   templateUrl: 'device.html',
@@ -88,11 +90,11 @@ export class DevicePage implements OnInit {
   }
 
   
-  onRefreshValue(characteristic,i,y){
+  /*onRefreshValue(characteristic,i,y){
     //var res = this.onReadCharacteristic(this.device.id,characteristic.service,characteristic);
     alert(this.onReadCharacteristic(this.device.id,characteristic.service,characteristic));
     this.temp[i].characteristics[y].value = this.onReadCharacteristic(this.device.id,characteristic.service,characteristic);
-  }
+  }*/
   
   /**
    * Read characteristic info
@@ -100,7 +102,7 @@ export class DevicePage implements OnInit {
    * @param service 
    * @param characteristic (objet characteristic)
    */
-  onReadCharacteristic(deviceID,service,characteristic) {
+  onReadCharacteristic(deviceID,service,characteristic,indexService, indexCharacteristic) {
     
     this.ble.read(deviceID,service,characteristic.characteristic).then(
       function(buffer){
@@ -108,13 +110,16 @@ export class DevicePage implements OnInit {
         switch(characteristic.type){
           case 'string':
             alert("value = " + String.fromCharCode.apply(null,databuffer)+characteristic.unit);
+            this.temp[indexService].charac[indexCharacteristic].value = String.fromCharCode.apply(null,databuffer)+characteristic.unit;
             return String.fromCharCode.apply(null,databuffer)+characteristic.unit;
           case 'number':
             alert("value = " + databuffer[0]+characteristic.unit);
+            this.temp[indexService].charac[indexCharacteristic].value = String.fromCharCode.apply(null,databuffer)+characteristic.unit;
             return databuffer[0]+characteristic.unit;
             //break;
           default:
             alert(characteristic.characteristic+"\r\nvalue = " + JSON.stringify(databuffer)+characteristic.unit+"\r\n"+ databuffer[0]+characteristic.unit+"\r\n"+ databuffer);
+            this.temp[indexService].charac[indexCharacteristic].value = String.fromCharCode.apply(null,databuffer)+characteristic.unit;
             return JSON.stringify(databuffer)+characteristic.unit;
             //break;
         }
@@ -123,10 +128,31 @@ export class DevicePage implements OnInit {
     );
   }
 
+  /**
+   * TODO : chercher l'index du service et de la characteristique pour pouvoir mettre à jour la value lors d'une  modification
+   * @param event 
+   */
   onTemperatureSwitchChange(event){
     var value = new Uint8Array(1);
     value[0] = this.temperatureSensor ? 0x01 : 0x00;
-    this.onWriteCharacteristic("F000AA00-0451-4000-B000-000000000000","F000AA02-0451-4000-B000-000000000000",value);
+    this.onWriteCharacteristic("F000AA00-0451-4000-B000-000000000000","F000AA02-0451-4000-B000-000000000000",value.buffer);
+
+    // register notification
+    this.ble.startNotification(this.device.id, "F000AA00-0451-4000-B000-000000000000", "F000AA02-0451-4000-B000-000000000000")
+    .subscribe(data => {
+      var parsingData = new Uint8Array(data);
+      var ret = '';
+      for (var i = 0; i < 20; i++) {
+        ret = ret + data[i] + ',';
+      }
+      
+      alert('0x'+ret);
+    },
+    
+    () => {
+      this.spinner = false;
+      alert("etat indéfini");
+    });
   }
 
   /**
